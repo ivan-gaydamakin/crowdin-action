@@ -169,4 +169,4 @@ runs:
   using: "composite"
   steps:
     - run: ${{ github.action_path }}/entrypoint.sh
-      shell: zsh
+      shell: bash

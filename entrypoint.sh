@@ -1,14 +1,14 @@
 #!/bin/sh
 
-if [ "$DEBUG_MODE" = true ]; then
+if [ "$INPUT_DEBUG_MODE" = true ]; then
   echo '---------------------------'
   printenv
   echo '---------------------------'
 fi
 
 upload_sources() {
-  if [ -n "$UPLOAD_SOURCES_ARGS" ]; then
-    UPLOAD_SOURCES_OPTIONS="${UPLOAD_SOURCES_OPTIONS} ${UPLOAD_SOURCES_ARGS}"
+  if [ -n "$INPUT_UPLOAD_SOURCES_ARGS" ]; then
+    UPLOAD_SOURCES_OPTIONS="${UPLOAD_SOURCES_OPTIONS} ${INPUT_UPLOAD_SOURCES_ARGS}"
   fi
 
   echo "UPLOAD SOURCES"
@@ -16,20 +16,20 @@ upload_sources() {
 }
 
 upload_translations() {
-  if [ -n "$UPLOAD_LANGUAGE" ]; then
-    UPLOAD_TRANSLATIONS_OPTIONS="${UPLOAD_TRANSLATIONS_OPTIONS} --language=${UPLOAD_LANGUAGE}"
+  if [ -n "$INPUT_UPLOAD_LANGUAGE" ]; then
+    UPLOAD_TRANSLATIONS_OPTIONS="${UPLOAD_TRANSLATIONS_OPTIONS} --language=${INPUT_UPLOAD_LANGUAGE}"
   fi
 
-  if [ "$AUTO_APPROVE_IMPORTED" = true ]; then
+  if [ "$INPUT_AUTO_APPROVE_IMPORTED" = true ]; then
     UPLOAD_TRANSLATIONS_OPTIONS="${UPLOAD_TRANSLATIONS_OPTIONS} --auto-approve-imported"
   fi
 
-  if [ "$IMPORT_EQ_SUGGESTIONS" = true ]; then
+  if [ "$INPUT_IMPORT_EQ_SUGGESTIONS" = true ]; then
     UPLOAD_TRANSLATIONS_OPTIONS="${UPLOAD_TRANSLATIONS_OPTIONS} --import-eq-suggestions"
   fi
 
-  if [ -n "$UPLOAD_TRANSLATIONS_ARGS" ]; then
-    UPLOAD_TRANSLATIONS_OPTIONS="${UPLOAD_TRANSLATIONS_OPTIONS} ${UPLOAD_TRANSLATIONS_ARGS}"
+  if [ -n "$INPUT_UPLOAD_TRANSLATIONS_ARGS" ]; then
+    UPLOAD_TRANSLATIONS_OPTIONS="${UPLOAD_TRANSLATIONS_OPTIONS} ${INPUT_UPLOAD_TRANSLATIONS_ARGS}"
   fi
 
   echo "UPLOAD TRANSLATIONS"
@@ -37,26 +37,26 @@ upload_translations() {
 }
 
 download_translations() {
-  if [ -n "$DOWNLOAD_LANGUAGE" ]; then
-    DOWNLOAD_TRANSLATIONS_OPTIONS="${DOWNLOAD_TRANSLATIONS_OPTIONS} --language=${DOWNLOAD_LANGUAGE}"
-  elif [ -n "$LANGUAGE" ]; then #back compatibility for older versions
-    DOWNLOAD_TRANSLATIONS_OPTIONS="${DOWNLOAD_TRANSLATIONS_OPTIONS} --language=${LANGUAGE}"
+  if [ -n "$INPUT_DOWNLOAD_LANGUAGE" ]; then
+    DOWNLOAD_TRANSLATIONS_OPTIONS="${DOWNLOAD_TRANSLATIONS_OPTIONS} --language=${INPUT_DOWNLOAD_LANGUAGE}"
+  elif [ -n "$INPUT_LANGUAGE" ]; then #back compatibility for older versions
+    DOWNLOAD_TRANSLATIONS_OPTIONS="${DOWNLOAD_TRANSLATIONS_OPTIONS} --language=${INPUT_LANGUAGE}"
   fi
 
-  if [ "$SKIP_UNTRANSLATED_STRINGS" = true ]; then
+  if [ "$INPUT_SKIP_UNTRANSLATED_STRINGS" = true ]; then
     DOWNLOAD_TRANSLATIONS_OPTIONS="${DOWNLOAD_TRANSLATIONS_OPTIONS} --skip-untranslated-strings"
   fi
 
-  if [ "$SKIP_UNTRANSLATED_FILES" = true ]; then
+  if [ "$INPUT_SKIP_UNTRANSLATED_FILES" = true ]; then
     DOWNLOAD_TRANSLATIONS_OPTIONS="${DOWNLOAD_TRANSLATIONS_OPTIONS} --skip-untranslated-files"
   fi
 
-  if [ "$EXPORT_ONLY_APPROVED" = true ]; then
+  if [ "$INPUT_EXPORT_ONLY_APPROVED" = true ]; then
     DOWNLOAD_TRANSLATIONS_OPTIONS="${DOWNLOAD_TRANSLATIONS_OPTIONS} --export-only-approved"
   fi
 
-  if [ -n "$DOWNLOAD_TRANSLATIONS_ARGS" ]; then
-    DOWNLOAD_TRANSLATIONS_OPTIONS="${DOWNLOAD_TRANSLATIONS_OPTIONS} ${DOWNLOAD_TRANSLATIONS_ARGS}"
+  if [ -n "$INPUT_DOWNLOAD_TRANSLATIONS_ARGS" ]; then
+    DOWNLOAD_TRANSLATIONS_OPTIONS="${DOWNLOAD_TRANSLATIONS_OPTIONS} ${INPUT_DOWNLOAD_TRANSLATIONS_ARGS}"
   fi
 
   echo "DOWNLOAD TRANSLATIONS"
@@ -69,18 +69,18 @@ create_pull_request() {
   AUTH_HEADER="Authorization: token ${GITHUB_TOKEN}"
   HEADER="Accept: application/vnd.github.v3+json; application/vnd.github.antiope-preview+json; application/vnd.github.shadow-cat-preview+json"
 
-  if [ -n "$GITHUB_API_BASE_URL" ]; then
-    REPO_URL="https://${GITHUB_API_BASE_URL}/repos/${GITHUB_REPOSITORY}"
+  if [ -n "$INPUT_GITHUB_API_BASE_URL" ]; then
+    REPO_URL="https://${INPUT_GITHUB_API_BASE_URL}/repos/${GITHUB_REPOSITORY}"
   else
-    REPO_URL="https://api.${GITHUB_BASE_URL}/repos/${GITHUB_REPOSITORY}"
+    REPO_URL="https://api.${INPUT_GITHUB_BASE_URL}/repos/${GITHUB_REPOSITORY}"
   fi
 
   PULLS_URL="${REPO_URL}/pulls"
 
   echo "CHECK IF ISSET SAME PULL REQUEST"
 
-  if [ -n "$PULL_REQUEST_BASE_BRANCH_NAME" ]; then
-    BASE_BRANCH="$PULL_REQUEST_BASE_BRANCH_NAME"
+  if [ -n "$INPUT_PULL_REQUEST_BASE_BRANCH_NAME" ]; then
+    BASE_BRANCH="$INPUT_PULL_REQUEST_BASE_BRANCH_NAME"
   else
     if [ -n "$GITHUB_HEAD_REF" ]; then
       BASE_BRANCH=${GITHUB_HEAD_REF}
@@ -98,11 +98,11 @@ create_pull_request() {
   else
     echo "CREATE PULL REQUEST"
 
-    if [ -n "$PULL_REQUEST_BODY" ]; then
-      BODY=",\"body\":\"${PULL_REQUEST_BODY//$'\n'/\\n}\""
+    if [ -n "$INPUT_PULL_REQUEST_BODY" ]; then
+      BODY=",\"body\":\"${INPUT_PULL_REQUEST_BODY//$'\n'/\\n}\""
     fi
 
-    PULL_RESPONSE_DATA="{\"title\":\"${PULL_REQUEST_TITLE}\", \"base\":\"${BASE_BRANCH}\", \"head\":\"${LOCALIZATION_BRANCH}\" ${BODY}}"
+    PULL_RESPONSE_DATA="{\"title\":\"${INPUT_PULL_REQUEST_TITLE}\", \"base\":\"${BASE_BRANCH}\", \"head\":\"${LOCALIZATION_BRANCH}\" ${BODY}}"
 
     PULL_RESPONSE=$(curl -sSL -H "${AUTH_HEADER}" -H "${HEADER}" -X POST --data "${PULL_RESPONSE_DATA}" "${PULLS_URL}")
 
@@ -111,8 +111,8 @@ create_pull_request() {
     PULL_REQUESTS_NUMBER=$(echo "${PULL_RESPONSE}" | jq '.number')
     view_debug_output
 
-    if [ -n "$PULL_REQUEST_LABELS" ]; then
-      PULL_REQUEST_LABELS=$(echo "[\"${PULL_REQUEST_LABELS}\"]" | sed 's/, \|,/","/g')
+    if [ -n "$INPUT_PULL_REQUEST_LABELS" ]; then
+      PULL_REQUEST_LABELS=$(echo "[\"${INPUT_PULL_REQUEST_LABELS}\"]" | sed 's/, \|,/","/g')
 
       if [ "$(echo "$PULL_REQUEST_LABELS" | jq -e . > /dev/null 2>&1; echo $?)" -eq 0 ]; then
         echo "ADD LABELS TO PULL REQUEST"
@@ -131,13 +131,13 @@ create_pull_request() {
 }
 
 push_to_branch() {
-  LOCALIZATION_BRANCH=${LOCALIZATION_BRANCH_NAME}
+  LOCALIZATION_BRANCH=${INPUT_LOCALIZATION_BRANCH_NAME}
 
-  REPO_URL="https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@${GITHUB_BASE_URL}/${GITHUB_REPOSITORY}.git"
+  REPO_URL="https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@${INPUT_GITHUB_BASE_URL}/${GITHUB_REPOSITORY}.git"
 
   echo "CONFIGURATION GIT USER"
-  git config --global user.email "${GITHUB_USER_EMAIL}"
-  git config --global user.name "${GITHUB_USER_NAME}"
+  git config --global user.email "${INPUT_GITHUB_USER_EMAIL}"
+  git config --global user.name "${INPUT_GITHUB_USER_NAME}"
 
   if [ ${GITHUB_REF#refs/heads/} != $GITHUB_REF ]; then
     git checkout "${GITHUB_REF#refs/heads/}"
@@ -157,16 +157,16 @@ push_to_branch() {
   fi
 
   echo "PUSH TO BRANCH ${LOCALIZATION_BRANCH}"
-  git commit --no-verify -m "${COMMIT_MESSAGE}"
+  git commit --no-verify -m "${INPUT_COMMIT_MESSAGE}"
   git push --no-verify --force "${REPO_URL}"
 
-  if [ "$CREATE_PULL_REQUEST" = true ]; then
+  if [ "$INPUT_CREATE_PULL_REQUEST" = true ]; then
     create_pull_request "${LOCALIZATION_BRANCH}"
   fi
 }
 
 view_debug_output() {
-  if [ "$DEBUG_MODE" = true ]; then
+  if [ "$INPUT_DEBUG_MODE" = true ]; then
     set -x
   fi
 }
@@ -174,7 +174,7 @@ view_debug_output() {
 setup_commit_signing() {
   echo "FOUND PRIVATE KEY, WILL SETUP GPG KEYSTORE"
 
-  echo "${GPG_PRIVATE_KEY}" > private.key
+  echo "${INPUT_GPG_PRIVATE_KEY}" > private.key
 
   gpg --import private.key
 
@@ -215,83 +215,83 @@ set -e
 #SET OPTIONS
 set -- --no-progress --no-colors
 
-if [ "$DEBUG_MODE" = true ]; then
+if [ "$INPUT_DEBUG_MODE" = true ]; then
   set -- "$@" --verbose --debug
 fi
 
-if [ -n "$CROWDIN_BRANCH_NAME" ]; then
-  set -- "$@" --branch="${CROWDIN_BRANCH_NAME}"
+if [ -n "$INPUT_CROWDIN_BRANCH_NAME" ]; then
+  set -- "$@" --branch="${INPUT_CROWDIN_BRANCH_NAME}"
 fi
 
-if [ -n "$IDENTITY" ]; then
-  set -- "$@" --identity="${IDENTITY}"
+if [ -n "$INPUT_IDENTITY" ]; then
+  set -- "$@" --identity="${INPUT_IDENTITY}"
 fi
 
-if [ -n "$CONFIG" ]; then
-  set -- "$@" --config="${CONFIG}"
+if [ -n "$INPUT_CONFIG" ]; then
+  set -- "$@" --config="${INPUT_CONFIG}"
 fi
 
-if [ "$DRYRUN_ACTION" = true ]; then
+if [ "$INPUT_DRYRUN_ACTION" = true ]; then
   set -- "$@" --dryrun
 fi
 
 #SET CONFIG OPTIONS
-if [ -n "$PROJECT_ID" ]; then
-  set -- "$@" --project-id=${PROJECT_ID}
+if [ -n "$INPUT_PROJECT_ID" ]; then
+  set -- "$@" --project-id=${INPUT_PROJECT_ID}
 fi
 
-if [ -n "$TOKEN" ]; then
-  set -- "$@" --token="${TOKEN}"
+if [ -n "$INPUT_TOKEN" ]; then
+  set -- "$@" --token="${INPUT_TOKEN}"
 fi
 
-if [ -n "$BASE_URL" ]; then
-  set -- "$@" --base-url="${BASE_URL}"
+if [ -n "$INPUT_BASE_URL" ]; then
+  set -- "$@" --base-url="${INPUT_BASE_URL}"
 fi
 
-if [ -n "$BASE_PATH" ]; then
-  set -- "$@" --base-path="${BASE_PATH}"
+if [ -n "$INPUT_BASE_PATH" ]; then
+  set -- "$@" --base-path="${INPUT_BASE_PATH}"
 fi
 
-if [ -n "$SOURCE" ]; then
-  set -- "$@" --source="${SOURCE}"
+if [ -n "$INPUT_SOURCE" ]; then
+  set -- "$@" --source="${INPUT_SOURCE}"
 fi
 
-if [ -n "$TRANSLATION" ]; then
-  set -- "$@" --translation="${TRANSLATION}"
+if [ -n "$INPUT_TRANSLATION" ]; then
+  set -- "$@" --translation="${INPUT_TRANSLATION}"
 fi
 
 #EXECUTE COMMANDS
 
-if [ -n "$ADD_CROWDIN_BRANCH" ]; then
+if [ -n "$INPUT_ADD_CROWDIN_BRANCH" ]; then
   NEW_BRANCH_OPTIONS=$( get_branch_available_options "$@" )
 
-  if [ -n "$NEW_BRANCH_PRIORITY" ]; then
-    NEW_BRANCH_OPTIONS="${NEW_BRANCH_OPTIONS} --priority=${NEW_BRANCH_PRIORITY}"
+  if [ -n "$INPUT_NEW_BRANCH_PRIORITY" ]; then
+    NEW_BRANCH_OPTIONS="${NEW_BRANCH_OPTIONS} --priority=${INPUT_NEW_BRANCH_PRIORITY}"
   fi
 
-  echo "CREATING BRANCH $ADD_CROWDIN_BRANCH"
+  echo "CREATING BRANCH $INPUT_ADD_CROWDIN_BRANCH"
 
-  crowdin branch add $ADD_CROWDIN_BRANCH $NEW_BRANCH_OPTIONS --title="${NEW_BRANCH_TITLE}" --export-pattern="${NEW_BRANCH_EXPORT_PATTERN}"
+  crowdin branch add $INPUT_ADD_CROWDIN_BRANCH $NEW_BRANCH_OPTIONS --title="${INPUT_NEW_BRANCH_TITLE}" --export-pattern="${INPUT_NEW_BRANCH_EXPORT_PATTERN}"
 fi
 
-if [ "$UPLOAD_SOURCES" = true ]; then
+if [ "$INPUT_UPLOAD_SOURCES" = true ]; then
   upload_sources "$@"
 fi
 
-if [ "$UPLOAD_TRANSLATIONS" = true ]; then
+if [ "$INPUT_UPLOAD_TRANSLATIONS" = true ]; then
   upload_translations "$@"
 fi
 
-if [ "$DOWNLOAD_TRANSLATIONS" = true ]; then
+if [ "$INPUT_DOWNLOAD_TRANSLATIONS" = true ]; then
   download_translations "$@"
 
-  if [ "$PUSH_TRANSLATIONS" = true ]; then
+  if [ "$INPUT_PUSH_TRANSLATIONS" = true ]; then
     [ -z "${GITHUB_TOKEN}" ] && {
       echo "CAN NOT FIND 'GITHUB_TOKEN' IN ENVIRONMENT VARIABLES"
       exit 1
     }
 
-    if [ -n "${GPG_PRIVATE_KEY}" ]; then
+    if [ -n "${INPUT_GPG_PRIVATE_KEY}" ]; then
       setup_commit_signing
     fi
 
@@ -299,8 +299,8 @@ if [ "$DOWNLOAD_TRANSLATIONS" = true ]; then
   fi
 fi
 
-if [ -n "$DELETE_CROWDIN_BRANCH" ]; then
-  echo "REMOVING BRANCH $DELETE_CROWDIN_BRANCH"
+if [ -n "$INPUT_DELETE_CROWDIN_BRANCH" ]; then
+  echo "REMOVING BRANCH $INPUT_DELETE_CROWDIN_BRANCH"
 
-  crowdin branch delete $DELETE_CROWDIN_BRANCH $( get_branch_available_options "$@" )
+  crowdin branch delete $INPUT_DELETE_CROWDIN_BRANCH $( get_branch_available_options "$@" )
 fi

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/zsh
 
 if [ "$INPUT_DEBUG_MODE" = true ]; then
   echo '---------------------------'

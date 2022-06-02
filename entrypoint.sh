@@ -284,19 +284,19 @@ fi
 
 if [ "$INPUT_DOWNLOAD_TRANSLATIONS" = true ]; then
   download_translations "$@"
+fi
 
-  if [ "$INPUT_PUSH_TRANSLATIONS" = true ]; then
-    [ -z "${GITHUB_TOKEN}" ] && {
-      echo "CAN NOT FIND 'GITHUB_TOKEN' IN ENVIRONMENT VARIABLES"
-      exit 1
-    }
+if [ "$INPUT_PUSH_TRANSLATIONS" = true ]; then
+  [ -z "${GITHUB_TOKEN}" ] && {
+    echo "CAN NOT FIND 'GITHUB_TOKEN' IN ENVIRONMENT VARIABLES"
+    exit 1
+  }
 
-    if [ -n "${INPUT_GPG_PRIVATE_KEY}" ]; then
-      setup_commit_signing
-    fi
-
-    push_to_branch
+  if [ -n "${INPUT_GPG_PRIVATE_KEY}" ]; then
+    setup_commit_signing
   fi
+
+  push_to_branch
 fi
 
 if [ -n "$INPUT_DELETE_CROWDIN_BRANCH" ]; then

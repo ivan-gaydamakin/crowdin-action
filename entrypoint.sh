@@ -16,24 +16,25 @@ upload_sources() {
 }
 
 upload_translations() {
+  args=("$@")
   if [ -n "$INPUT_UPLOAD_LANGUAGE" ]; then
-    UPLOAD_TRANSLATIONS_OPTIONS="${UPLOAD_TRANSLATIONS_OPTIONS} --language=${INPUT_UPLOAD_LANGUAGE}"
+    args+=("--language=${INPUT_UPLOAD_LANGUAGE}")
   fi
 
   if [ "$INPUT_AUTO_APPROVE_IMPORTED" = true ]; then
-    UPLOAD_TRANSLATIONS_OPTIONS="${UPLOAD_TRANSLATIONS_OPTIONS} --auto-approve-imported"
+    args+=("--auto-approve-imported")
   fi
 
   if [ "$INPUT_IMPORT_EQ_SUGGESTIONS" = true ]; then
-    UPLOAD_TRANSLATIONS_OPTIONS="${UPLOAD_TRANSLATIONS_OPTIONS} --import-eq-suggestions"
+    args+=("--import-eq-suggestions")
   fi
 
   if [ -n "$INPUT_UPLOAD_TRANSLATIONS_ARGS" ]; then
-    UPLOAD_TRANSLATIONS_OPTIONS="${UPLOAD_TRANSLATIONS_OPTIONS} ${INPUT_UPLOAD_TRANSLATIONS_ARGS}"
+    args+=("${INPUT_UPLOAD_TRANSLATIONS_ARGS}")
   fi
 
   echo "UPLOAD TRANSLATIONS"
-  crowdin upload translations "$@" $UPLOAD_TRANSLATIONS_OPTIONS
+  crowdin upload translations "${args[@]}"
 }
 
 download_translations() {

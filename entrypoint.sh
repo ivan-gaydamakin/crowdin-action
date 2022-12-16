@@ -152,7 +152,7 @@ change_state_pull_request() {
   PULL_REQUESTS_NUMBER=$1
   PULL_STATE=$2
   STATE_URL="${REPO_URL}/pulls/${PULL_REQUESTS_NUMBER}"
-  STATE_DATA="{\"labels\":${PULL_STATE}}"
+  STATE_DATA="{\"state\":${PULL_STATE}}"
   curl -sSL -H "${AUTH_HEADER}" -H "${HEADER}" -X PATCH --data "${STATE_DATA}" "${STATE_URL}"
 }
 

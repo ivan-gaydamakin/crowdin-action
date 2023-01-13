@@ -91,8 +91,7 @@ create_pull_request() {
   fi
 
   PULL_REQUESTS_QUERY_PARAMS="?base=${BASE_BRANCH}&head=${LOCALIZATION_BRANCH}"
-  PULL_REQUEST_RESPONSE=$(echo "$(curl -sSL -H "${AUTH_HEADER}" -H "${HEADER}" -X GET "${PULLS_URL}${PULL_REQUESTS_QUERY_PARAMS}")")
-  PULL_REQUESTS=$(${PULL_REQUEST_RESPONSE} | jq --raw-output '.[] | .head.ref ')
+  PULL_REQUESTS=$(curl -sSL -H "${AUTH_HEADER}" -H "${HEADER}" -X GET "${PULLS_URL}${PULL_REQUESTS_QUERY_PARAMS}" | jq --raw-output '.[] | .head.ref ')
 
   if echo "$PULL_REQUESTS " | grep -q "$LOCALIZATION_BRANCH "; then
     echo "PULL REQUEST ALREADY EXIST"

@@ -115,7 +115,10 @@ create_pull_request() {
     if [ -n "$INPUT_PULL_REQUEST_LABELS" ]; then
       PULL_REQUEST_LABELS=$(echo "[\"${INPUT_PULL_REQUEST_LABELS}\"]" | sed 's/, \|,/","/g')
 
-      if [ "$(echo "$PULL_REQUEST_LABELS" | jq -e . > /dev/null 2>&1; echo $?)" -eq 0 ]; then
+      if [ "$(
+        echo "$PULL_REQUEST_LABELS" | jq -e . >/dev/null 2>&1
+        echo $?
+      )" -eq 0 ]; then
         echo "ADD LABELS TO PULL REQUEST"
 
         ISSUE_URL="${REPO_URL}/issues/${PULL_REQUESTS_NUMBER}"
@@ -148,8 +151,8 @@ push_to_branch() {
     git checkout "${LOCALIZATION_BRANCH}"
   else
     git checkout -b "${LOCALIZATION_BRANCH}"
-  fi  
-  
+  fi
+
   git add .
 
   if [ ! -n "$(git status -s)" ]; then
@@ -175,13 +178,13 @@ view_debug_output() {
 setup_commit_signing() {
   echo "FOUND PRIVATE KEY, WILL SETUP GPG KEYSTORE"
 
-  echo "${INPUT_GPG_PRIVATE_KEY}" > private.key
+  echo "${INPUT_GPG_PRIVATE_KEY}" >private.key
 
   gpg --import private.key
 
   GPG_KEY_ID=$(gpg --list-secret-keys --keyid-format=long | grep -o "rsa\d\+\/\(\w\+\)" | head -n1 | sed "s/rsa\d\+\/\(\w\+\)/\1/")
-  GPG_KEY_OWNER_NAME=$(gpg --list-secret-keys --keyid-format=long | grep  "uid" | sed "s/.\+] \(.\+\) <\(.\+\)>/\1/")
-  GPG_KEY_OWNER_EMAIL=$(gpg --list-secret-keys --keyid-format=long | grep  "uid" | sed "s/.\+] \(.\+\) <\(.\+\)>/\2/")
+  GPG_KEY_OWNER_NAME=$(gpg --list-secret-keys --keyid-format=long | grep "uid" | sed "s/.\+] \(.\+\) <\(.\+\)>/\1/")
+  GPG_KEY_OWNER_EMAIL=$(gpg --list-secret-keys --keyid-format=long | grep "uid" | sed "s/.\+] \(.\+\) <\(.\+\)>/\2/")
   echo "Imported key information:"
   echo "      Key id: ${GPG_KEY_ID}"
   echo "  Owner name: ${GPG_KEY_OWNER_NAME}"
@@ -194,7 +197,7 @@ setup_commit_signing() {
 }
 
 get_branch_available_options() {
-  for OPTION in "$@" ; do
+  for OPTION in "$@"; do
     if echo "$OPTION" | egrep -vq "^(--dryrun|--branch|--source|--translation)"; then
       AVAILABLE_OPTIONS="${AVAILABLE_OPTIONS} ${OPTION}"
     fi
@@ -264,7 +267,7 @@ fi
 #EXECUTE COMMANDS
 
 if [ -n "$INPUT_ADD_CROWDIN_BRANCH" ]; then
-  NEW_BRANCH_OPTIONS=$( get_branch_available_options "$@" )
+  NEW_BRANCH_OPTIONS=$(get_branch_available_options "$@")
 
   if [ -n "$INPUT_NEW_BRANCH_PRIORITY" ]; then
     NEW_BRANCH_OPTIONS="${NEW_BRANCH_OPTIONS} --priority=${INPUT_NEW_BRANCH_PRIORITY}"
@@ -303,5 +306,5 @@ fi
 if [ -n "$INPUT_DELETE_CROWDIN_BRANCH" ]; then
   echo "REMOVING BRANCH $INPUT_DELETE_CROWDIN_BRANCH"
 
-  crowdin branch delete $INPUT_DELETE_CROWDIN_BRANCH $( get_branch_available_options "$@" )
+  crowdin branch delete $INPUT_DELETE_CROWDIN_BRANCH $(get_branch_available_options "$@")
 fi

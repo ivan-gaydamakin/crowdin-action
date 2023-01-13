@@ -91,8 +91,8 @@ create_pull_request() {
   fi
 
   PULL_REQUESTS_QUERY_PARAMS="?base=${BASE_BRANCH}&head=${LOCALIZATION_BRANCH}"
-
-  PULL_REQUESTS=$(echo "$(curl -sSL -H "${AUTH_HEADER}" -H "${HEADER}" -X GET "${PULLS_URL}${PULL_REQUESTS_QUERY_PARAMS}")" | jq --raw-output '.[] | .head.ref ')
+  PULL_REQUEST_RESPONSE=$(echo "$(curl -sSL -H "${AUTH_HEADER}" -H "${HEADER}" -X GET "${PULLS_URL}${PULL_REQUESTS_QUERY_PARAMS}")")
+  PULL_REQUESTS=$(${PULL_REQUEST_RESPONSE} | jq --raw-output '.[] | .head.ref ')
 
   if echo "$PULL_REQUESTS " | grep -q "$LOCALIZATION_BRANCH "; then
     echo "PULL REQUEST ALREADY EXIST"
@@ -131,33 +131,7 @@ create_pull_request() {
     fi
 
     echo "PULL REQUEST CREATED: ${PULL_REQUESTS_URL}"
-
-    echo "CLOSE PULL REQUEST"
-    change_state_pull_request ${PULL_REQUESTS_NUMBER} "closed"
-    echo "OPEN PULL REQUEST"
-    change_state_pull_request ${PULL_REQUESTS_NUMBER} "open"
   fi
-}
-
-change_state_pull_request() {
-  AUTH_HEADER="Authorization: token ${GITHUB_TOKEN}"
-  HEADER="Accept: application/vnd.github.v3+json; application/vnd.github.antiope-preview+json; application/vnd.github.shadow-cat-preview+json"
-
-  if [ -n "$INPUT_GITHUB_API_BASE_URL" ]; then
-    REPO_URL="https://${INPUT_GITHUB_API_BASE_URL}/repos/${GITHUB_REPOSITORY}"
-  else
-    REPO_URL="https://api.${INPUT_GITHUB_BASE_URL}/repos/${GITHUB_REPOSITORY}"
-  fi
-
-  PULL_REQUESTS_NUMBER=$1
-  PULL_STATE=$2
-  STATE_URL="${REPO_URL}/pulls/${PULL_REQUESTS_NUMBER}"
-  STATE_DATA="{\"state\":\"${PULL_STATE}\"}"
-  echo "Used STATE_URL: ${STATE_URL}"
-  echo "Used PULL_STATE: ${PULL_STATE}"
-  echo "Used STATE_URL: ${STATE_URL}"
-  echo "Used STATE_DATA: ${STATE_DATA}"
-  curl -sSL -H "${AUTH_HEADER}" -H "${HEADER}" -X PATCH --data "${STATE_DATA}" "${STATE_URL}"
 }
 
 push_to_branch() {
